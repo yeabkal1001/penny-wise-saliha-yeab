@@ -4,13 +4,17 @@ export async function getTransactionsByUserId(req, res) {
   try {
     const { userId } = req.params;
 
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
+
     const transactions = await sql`
         SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC
       `;
 
     res.status(200).json(transactions);
   } catch (error) {
-    console.log("Error getting the transactions", error);
+    console.error("Error getting transactions:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -34,7 +38,7 @@ export async function createTransaction(req, res) {
 
     res.status(201).json(transaction[0]);
   } catch (error) {
-    console.log("Error creating the transaction", error);
+    console.error("Error creating transaction:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -62,7 +66,7 @@ export async function deleteTransaction(req, res) {
 
     res.status(200).json({ message: "Transaction deleted successfully" });
   } catch (error) {
-    console.log("Error deleting the transaction", error);
+    console.error("Error deleting transaction:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -71,27 +75,27 @@ export async function getSummaryByUserId(req, res) {
   try {
     const { userId } = req.params;
 
-    const balanceResult = await sql`
-      SELECT COALESCE(SUM(amount), 0) as balance FROM transactions WHERE user_id = ${userId}
-    `;
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
 
-    const incomeResult = await sql`
-      SELECT COALESCE(SUM(amount), 0) as income FROM transactions
-      WHERE user_id = ${userId} AND amount > 0
-    `;
-
-    const expensesResult = await sql`
-      SELECT COALESCE(SUM(amount), 0) as expenses FROM transactions
-      WHERE user_id = ${userId} AND amount < 0
+    // Optimized: Single query instead of three separate queries
+    const results = await sql`
+      SELECT 
+        COALESCE(SUM(amount), 0) as balance,
+        COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) as income,
+        COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0) as expenses
+      FROM transactions 
+      WHERE user_id = ${userId}
     `;
 
     res.status(200).json({
-      balance: balanceResult[0].balance,
-      income: incomeResult[0].income,
-      expenses: expensesResult[0].expenses,
+      balance: results[0].balance,
+      income: results[0].income,
+      expenses: results[0].expenses,
     });
   } catch (error) {
-    console.log("Error gettin the summary", error);
+    console.error("Error getting summary:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }

@@ -4,9 +4,6 @@ import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import { API_URL } from "../constants/api";
 
-// const API_URL = "https://wallet-api-cxqp.onrender.com/api";
-// const API_URL = "http://localhost:5001/api";
-
 export const useTransactions = (userId) => {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState({
@@ -17,7 +14,6 @@ export const useTransactions = (userId) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // useCallback is used for performance reasons, it will memoize the function
   const fetchTransactions = useCallback(async () => {
     try {
       if (!userId) return;
@@ -27,7 +23,7 @@ export const useTransactions = (userId) => {
       setTransactions(data);
       setError(null);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      console.error("Error fetching transactions:", error.message);
       setError("Unable to load transactions. Check your connection.");
     }
   }, [userId]);
@@ -41,7 +37,7 @@ export const useTransactions = (userId) => {
       setSummary(data);
       setError(null);
     } catch (error) {
-      console.error("Error fetching summary:", error);
+      console.error("Error fetching summary:", error.message);
       setError("Unable to load summary. Check your connection.");
     }
   }, [userId]);
@@ -52,17 +48,17 @@ export const useTransactions = (userId) => {
     setIsLoading(true);
     setError(null);
     try {
-      // can be run in parallel
+      // Run in parallel for better performance
       await Promise.all([fetchTransactions(), fetchSummary()]);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Error loading data:", error.message);
       setError("Unable to load data. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }, [fetchTransactions, fetchSummary, userId]);
 
-  const deleteTransaction = async (id) => {
+  const deleteTransaction = useCallback(async (id) => {
     try {
       if (!userId) {
         Alert.alert("Error", "Please sign in again to continue");
@@ -76,13 +72,13 @@ export const useTransactions = (userId) => {
       if (!response.ok) throw new Error("Failed to delete transaction");
 
       // Refresh data after deletion
-      loadData();
+      await loadData();
       Alert.alert("Success", "Transaction deleted successfully");
     } catch (error) {
-      console.error("Error deleting transaction:", error);
+      console.error("Error deleting transaction:", error.message);
       Alert.alert("Error", error.message);
     }
-  };
+  }, [userId, loadData]);
 
   return { transactions, summary, isLoading, loadData, deleteTransaction, error };
 };

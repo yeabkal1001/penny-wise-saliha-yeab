@@ -4,13 +4,17 @@ export async function getNotificationsByUserId(req, res) {
   try {
     const { userId } = req.params;
 
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
+
     const notifications = await sql`
       SELECT * FROM notifications WHERE user_id = ${userId} ORDER BY created_at DESC
     `;
 
     res.status(200).json(notifications);
   } catch (error) {
-    console.log("Error getting notifications", error);
+    console.error("Error getting notifications:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -34,7 +38,7 @@ export async function createNotification(req, res) {
 
     res.status(201).json(notification[0]);
   } catch (error) {
-    console.log("Error creating notification", error);
+    console.error("Error creating notification:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -65,7 +69,7 @@ export async function markNotificationRead(req, res) {
 
     res.status(200).json(result[0]);
   } catch (error) {
-    console.log("Error updating notification", error);
+    console.error("Error updating notification:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -87,7 +91,7 @@ export async function markAllNotificationsRead(req, res) {
 
     res.status(200).json({ updated: result.length });
   } catch (error) {
-    console.log("Error updating notifications", error);
+    console.error("Error updating notifications:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }

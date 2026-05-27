@@ -4,13 +4,17 @@ export async function getBudgetsByUserId(req, res) {
   try {
     const { userId } = req.params;
 
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
+
     const budgets = await sql`
       SELECT * FROM budgets WHERE user_id = ${userId} ORDER BY created_at DESC
     `;
 
     res.status(200).json(budgets);
   } catch (error) {
-    console.log("Error getting budgets", error);
+    console.error("Error getting budgets:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -34,7 +38,7 @@ export async function createBudget(req, res) {
 
     res.status(201).json(budget[0]);
   } catch (error) {
-    console.log("Error creating budget", error);
+    console.error("Error creating budget:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -75,7 +79,7 @@ export async function updateBudget(req, res) {
 
     res.status(200).json(result[0]);
   } catch (error) {
-    console.log("Error updating budget", error);
+    console.error("Error updating budget:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -103,7 +107,7 @@ export async function deleteBudget(req, res) {
 
     res.status(200).json({ message: "Budget deleted successfully" });
   } catch (error) {
-    console.log("Error deleting budget", error);
+    console.error("Error deleting budget:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
