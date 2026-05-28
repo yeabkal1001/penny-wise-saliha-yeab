@@ -4,13 +4,17 @@ export async function getCategoriesByUserId(req, res) {
   try {
     const { userId } = req.params;
 
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
+
     const categories = await sql`
       SELECT * FROM categories WHERE user_id = ${userId} ORDER BY created_at DESC
     `;
 
     res.status(200).json(categories);
   } catch (error) {
-    console.log("Error getting categories", error);
+    console.error("Error getting categories:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -37,7 +41,7 @@ export async function createCategory(req, res) {
 
     res.status(201).json(result[0]);
   } catch (error) {
-    console.log("Error creating category", error);
+    console.error("Error creating category:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -65,7 +69,7 @@ export async function deleteCategory(req, res) {
 
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
-    console.log("Error deleting category", error);
+    console.error("Error deleting category:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }

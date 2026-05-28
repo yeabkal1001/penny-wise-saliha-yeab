@@ -4,13 +4,17 @@ export async function getGoalsByUserId(req, res) {
   try {
     const { userId } = req.params;
 
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Valid user ID is required" });
+    }
+
     const goals = await sql`
       SELECT * FROM goals WHERE user_id = ${userId} ORDER BY created_at DESC
     `;
 
     res.status(200).json(goals);
   } catch (error) {
-    console.log("Error getting goals", error);
+    console.error("Error getting goals:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -34,7 +38,7 @@ export async function createGoal(req, res) {
 
     res.status(201).json(goal[0]);
   } catch (error) {
-    console.log("Error creating goal", error);
+    console.error("Error creating goal:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -75,7 +79,7 @@ export async function updateGoal(req, res) {
 
     res.status(200).json(result[0]);
   } catch (error) {
-    console.log("Error updating goal", error);
+    console.error("Error updating goal:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -103,7 +107,7 @@ export async function deleteGoal(req, res) {
 
     res.status(200).json({ message: "Goal deleted successfully" });
   } catch (error) {
-    console.log("Error deleting goal", error);
+    console.error("Error deleting goal:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 }
