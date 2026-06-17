@@ -1,0 +1,6 @@
+interface:
+  display_name: "Penny Wise Saliha Yeab"
+  short_description: "Repo-specific patterns and workflows for penny-wise-saliha-yeab"
+  default_prompt: "Use the penny-wise-saliha-yeab repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
